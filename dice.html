@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dice Roller</title>
+  </head>
+  <body>
+    <dice-roller id="dice" dice1-map="" dice2-map=""></dice-roller>
+
+    <script>
+      class DiceRoller extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+          this.previousTurns = [];
+          this.turnCounter = 1;
+
+          // Default maps (if no custom maps provided)
+          this.dice1Map = {
+            1: "Move 1 hex",
+            2: "Move 1 hex",
+            3: "Move 2 hex",
+            4: "Move 2 hex",
+            5: "Move 3 hex",
+            6: "Move 3 hex",
+          };
+          this.dice2Map = {
+            1: "Get 1 Red",
+            2: "Get 1 Blue",
+            3: "Get 1 Green",
+            4: "Get 1 Purple",
+            5: "Get 1 Gold",
+            6: "Get 1 of any resource",
+          };
+        }
+
+        static get observedAttributes() {
+          return ["dice1-map", "dice2-map"];
+        }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+          if (name === "dice1-map") {
+            try {
+              this.dice1Map = JSON.parse(newValue);
+            } catch (error) {
+              console.error("Invalid dice1-map JSON", error);
+            }
+          }
+          if (name === "dice2-map") {
+            try {
+              this.dice2Map = JSON.parse(newValue);
+            } catch (error) {
+              console.error("Invalid dice2-map JSON", error);
+            }
+          }
+        }
+
+        connectedCallback() {
+          this.render();
+          this.addEventListeners();
+        }
+
+        render() {
+          this.shadowRoot.innerHTML = `
+                    <style>
+                        ${this.constructor.styles}
+                    </style>
+                    <div class="dice-container">
+                        <div class="die" id="die1">-</div>
+                        <div class="die" id="die2">-</div>
+                    </div>
+                    <button id="rollButton">Roll Dice</button>
+                    <div id="previous-turns">
+                        <h3>Previous Turns</h3>
+                        <ul id="turns-list"></ul>
+                    </div>
+                `;
+        }
+
+        addEventListeners() {
+          const rollButton = this.shadowRoot.getElementById("rollButton");
+          rollButton.addEventListener("click", () => this.rollDice());
+        }
+
+        rollDice() {
+          const die1 = this.shadowRoot.getElementById("die1");
+          const die2 = this.shadowRoot.getElementById("die2");
+          const turnsList = this.shadowRoot.getElementById("turns-list");
+
+          // Clear previous numbers during rolling
+          die1.textContent = "?";
+          die2.textContent = "?";
+
+          // Add rolling animation
+          die1.classList.add("rolling");
+          die2.classList.add("rolling");
+
+          // Remove previous rolling classes and set new values after animation
+          setTimeout(() => {
+            die1.classList.remove("rolling");
+            die2.classList.remove("rolling");
+
+            const roll1 = Math.floor(Math.random() * 6) + 1;
+            const roll2 = Math.floor(Math.random() * 6) + 1;
+
+            die1.textContent = roll1;
+            die2.textContent = roll2;
+
+            // Get descriptions from maps
+            const desc1 =
+              `<span class="move">${this.dice1Map[roll1]}</span> or ${this.dice2Map[roll1]}` ||
+              `No description for ${roll1}`;
+            const desc2 =
+                  `<span class="move">${this.dice1Map[roll2]}</span> or <span class="color">${this.dice2Map[roll2]}</span>` ||
+              `No description for ${roll2}`;
+
+            // Add to previous turns
+            this.previousTurns.unshift({
+              turn: this.turnCounter.toString().padStart(2, "0"),
+              roll1,
+              roll2,
+              desc1,
+              desc2,
+            });
+
+            // Limit previous turns to 5
+            if (this.previousTurns.length > 5) {
+              this.previousTurns.pop();
+            }
+
+            // Update previous turns list
+            turnsList.innerHTML = this.previousTurns
+              .map(
+                (turn) =>
+                  `<li>
+                  <div>(${turn.turn}) Turn: </div><br>
+                  <div class="dice1">[Dice ${turn.roll1}]: ${turn.desc1}</div>
+                  <br>
+                   <div class="dice2">[Dice ${turn.roll2}]: ${turn.desc2}</div>
+                </li>`
+              )
+              .join("");
+
+            // Increment turn counter
+            this.turnCounter++;
+          }, 500);
+        }
+
+        static get styles() {
+          return `
+          span.move {
+    padding: 4px;
+    color: #fff;
+    background: #000;
+}
+                    .dice-container {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        gap: 20px;
+                        margin: 20px;
+                    }
+                    .die {
+                        width: 100px;
+                        height: 100px;
+                        background-color: #f0f0f0;
+                        border: 2px solid #333;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-size: 48px;
+                        font-weight: bold;
+                        border-radius: 10px;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        transition: transform 0.3s ease;
+                    }
+                    .die:hover {
+                        cursor: pointer;
+                    }
+                    .die.rolling {
+                        animation: shake 0.5s;
+                    }
+                    @keyframes shake {
+                        0%, 100% { transform: rotate(0deg); }
+                        10%, 90% { transform: rotate(-10deg); }
+                        20%, 80% { transform: rotate(10deg); }
+                        30%, 50%, 70% { transform: rotate(-10deg); }
+                        40%, 60% { transform: rotate(10deg); }
+                    }
+                    button {
+                        display: block;
+                        margin: 20px auto;
+                        padding: 10px 20px;
+                        font-size: 16px;
+                    }
+                    #previous-turns {
+                        max-width: 100%;
+                        margin: 0 auto;
+                        text-align: center;
+                    }
+                    #previous-turns h3 {
+                        margin-bottom: 10px;
+                    }
+                    #previous-turns ul {
+                        list-style-type: none;
+                        padding: 0;
+                    }
+                    #previous-turns li {
+                        background-color: #f0f0f0;
+                        margin: 5px 0;
+                        padding: 10px;
+                        border-radius: 5px;
+                        font-family: monospace;
+                    }
+                `;
+        }
+      }
+
+      // Define the custom element
+      customElements.define("dice-roller", DiceRoller);
+    </script>
+  </body>
+</html>

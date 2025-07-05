@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="script.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+
+        padding: 15px;
+
+        font-family: Arial, sans-serif;
+
+        background-color: #f5f5f5;
+      }
+
+      .container {
+        max-width: 600px;
+
+        margin: 0 auto;
+
+        background-color: white;
+
+        padding: 20px;
+
+        border-radius: 8px;
+
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .dicegauge {
+        width: 100%;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="dice-table">
+        <img
+          class="dicegauge"
+          src="dice-gauge.png"
+        />
+      </div>
+
+      <resource-row name="Red" color="ff6b6b" defaultAmount="0"></resource-row>
+      <resource-row
+        name="Green"
+        color="69db7c"
+        defaultAmount="0"
+      ></resource-row>
+      <resource-row name="Blue" color="4dabf7" defaultAmount="0"></resource-row>
+      <resource-row
+        name="Purple"
+        color="cc5de8"
+        defaultAmount="0"
+      ></resource-row>
+      <resource-row
+        name="Gold"
+        color="ffd700"
+        defaultAmount="0"
+        icon="coin.png"
+      ></resource-row>
+      <resource-row
+        name="VP"
+        color="FFDCE9"
+        defaultAmount="0"
+        icon="vp2.png"
+      ></resource-row>
+            <resource-row
+        name="Magic"
+        color="FFDCE9"
+        defaultAmount="0"
+        icon="magic.svg"
+      ></resource-row>
+    </div>
+  </body>
+</html>
